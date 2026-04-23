@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Элементы решения/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="Unscriptable.API/Unscriptable.API.csproj" />
+  <Project Path="Unscriptable.Application/Unscriptable.Application.csproj" />
+  <Project Path="Unscriptable.Domain/Unscriptable.Domain.csproj" />
+  <Project Path="Unscriptable.Infrastructure/Unscriptable.Infrastructure.csproj" />
+</Solution>

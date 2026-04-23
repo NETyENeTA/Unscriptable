@@ -1,0 +1,6 @@
+@Unscriptable.API_HostAddress = http://localhost:5182
+
+GET {{Unscriptable.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
