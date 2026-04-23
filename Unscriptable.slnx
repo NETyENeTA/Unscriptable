@@ -6,4 +6,5 @@
   <Project Path="Unscriptable.Application/Unscriptable.Application.csproj" />
   <Project Path="Unscriptable.Domain/Unscriptable.Domain.csproj" />
   <Project Path="Unscriptable.Infrastructure/Unscriptable.Infrastructure.csproj" />
+  <Project Path="Unscriptable.Unit_Tests/Unscriptable.Unit_Tests.csproj" Id="b1463446-6f0f-4b24-a0b8-da681abaca68" />
 </Solution>

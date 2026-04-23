@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Student> Students => Set<Student>();
+    public DbSet<Group> Groups => Set<Group>();
     public DbSet<Test> Tests => Set<Test>();
     public DbSet<Attempt> Attempts => Set<Attempt>();
 
@@ -17,41 +18,44 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        
+        modelBuilder.Entity<Student>()
+            .HasMany(s => s.Groups)
+            .WithMany(g => g.Students)
+            .UsingEntity<Dictionary<string, object>>(
+                "student_groups", // Имя таблицы в БД
+                j => j.HasOne<Group>().WithMany().HasForeignKey("groupsid"),
+                j => j.HasOne<Student>().WithMany().HasForeignKey("studentsid")
+            );
+
+        modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<Student>().ToTable("students");
+        modelBuilder.Entity<Group>().ToTable("groups");
+        modelBuilder.Entity<Test>().ToTable("tests");
+        modelBuilder.Entity<Attempt>().ToTable("attempts");
+
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasIndex(u => u.Login).IsUnique();
-            entity.HasIndex(u => u.Email).IsUnique();
-            entity.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.FirstName).HasColumnName("firstname");
+            entity.Property(e => e.LastName).HasColumnName("lastname");
+            entity.Property(e => e.MiddleName).HasColumnName("middlename");
         });
 
-        
-        modelBuilder.Entity<Student>(entity =>
+        modelBuilder.Entity<Test>(entity =>
         {
-            entity.Property(s => s.Phone).HasMaxLength(30);
-
-            entity.HasOne(s => s.User)
-                  .WithOne(u => u.Student)
-                  .HasForeignKey<Student>(s => s.UserId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.MaxScore).HasColumnName("maxscore");
         });
 
-        // Настройка Attempt (Связи и значения по умолчанию)
         modelBuilder.Entity<Attempt>(entity =>
         {
-            entity.Property(a => a.StartedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            // Связь с Тестом (Restrict - нельзя удалить тест, если есть попытки)
-            entity.HasOne(a => a.Test)
-                  .WithMany(t => t.Attempts)
-                  .HasForeignKey(a => a.TestId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            // Связь со Студентом (Cascade - удалили студента, удалились попытки)
-            entity.HasOne(a => a.Student)
-                  .WithMany(s => s.Attempts)
-                  .HasForeignKey(a => a.StudentId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.Score).HasColumnName("score");
+            entity.Property(e => e.StartedAt).HasColumnName("startedat");
+            entity.Property(e => e.SubmittedAt).HasColumnName("submittedat");
         });
+
+        // Настройка связи User -> Student (1 к 0..1)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Student)
+            .WithOne(s => s.User)
+            .HasForeignKey<Student>(s => s.UserId);
     }
 }

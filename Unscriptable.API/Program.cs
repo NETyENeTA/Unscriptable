@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
+using System.Data;
 using System.Text;
 using Unscriptable.Application.Interfaces;
 using Unscriptable.Infrastructure.Data;
@@ -10,36 +12,35 @@ using Unscriptable.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Стандартные сервисы контроллеров
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-
-// 2. Доступ к HttpContext (необходим для работы SignOut/SignIn в AuthService)
-builder.Services.AddHttpContextAccessor();
-
-// 3. Регистрация БД (PostgreSQL)
+// --- 1. Подключение к базе данных ---
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
+
+// Регистрация IDbConnection для Dapper
+builder.Services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
+
+// Регистрация EF Core DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 4. Регистрация твоих сервисов
+// --- 2. Регистрация сервисов приложения ---
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<CookieService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHttpContextAccessor(); // Нужно для доступа к Cookies из сервисов
 
-// 5. Настройка двойной аутентификации (JWT и Cookies)
+// --- 3. Настройка Аутентификации (JWT + Cookies) ---
 builder.Services.AddAuthentication(options =>
 {
-    // По умолчанию используем JWT, но поддерживаем и Куки
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    // По умолчанию используем JWT Bearer
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.Name = "Unscriptable.Auth";
+    options.Cookie.Name = "Unscriptable.Auth"; // Имя куки должно совпадать в JwtBearer
     options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromHours(3);
-    options.LoginPath = "/api/auth/login-cookie"; // Путь перенаправления, если не авторизован
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
@@ -51,18 +52,37 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "YourFallbackSecretKeyAtLeast32Chars"))
+    };
+
+    // КРИТИЧЕСКИЙ БЛОК: Позволяет JWT-аутентификации брать токен из Cookies
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Проверяем наличие куки, если токен не пришел в заголовке Authorization
+            if (context.Request.Cookies.ContainsKey("Unscriptable.Auth"))
+            {
+                context.Token = context.Request.Cookies["Unscriptable.Auth"];
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
-// 6. Настройка Swagger с поддержкой Bearer токенов
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// --- 4. Настройка Swagger с поддержкой Bearer ---
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Unscriptable API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Введите JWT токен в формате: Bearer {ваш_токен}",
+        Description = "Введите JWT токен: Bearer {ваш_токен}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -74,11 +94,7 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
@@ -87,7 +103,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// 7. Конфигурация конвейера запросов (Middleware)
+// --- 5. Конвейер запросов (Middleware) ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
