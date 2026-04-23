@@ -20,8 +20,16 @@ public class ReportService(IDbConnection connection) : IReportService
     public async Task<IEnumerable<StudentTestResultsItem>> GetStudentTestResultsAsync(StudentTestResultsFilter filter) =>
         await connection.QueryAsync<StudentTestResultsItem>(ReportQueries.StudentTestResults, filter);
 
-    public async Task<IEnumerable<GroupTrendItem>> GetGroupTrendAsync(GroupTrendFilter filter) =>
-        await connection.QueryAsync<GroupTrendItem>(ReportQueries.GroupTrend, filter);
+    public async Task<IEnumerable<GroupTrendItem>> GetGroupTrendAsync(GroupTrendFilter filter)
+    {
+        if (filter.GroupId <= 0)
+        {
+            throw new ArgumentException("Student ID must be greater than zero.", nameof(filter.GroupId));
+        }
+
+        return await connection.QueryAsync<GroupTrendItem>(ReportQueries.GroupTrend, filter);
+    }
+        
 
     public async Task<IEnumerable<StudentRatingItem>> GetStudentRatingAsync(StudentRatingFilter filter) =>
         await connection.QueryAsync<StudentRatingItem>(ReportQueries.StudentRating, filter);
@@ -29,8 +37,16 @@ public class ReportService(IDbConnection connection) : IReportService
     public async Task<IEnumerable<StudentMonthlyProgressItem>> GetStudentMonthlyProgressAsync(StudentMonthlyProgressFilter filter) =>
         await connection.QueryAsync<StudentMonthlyProgressItem>(ReportQueries.StudentMonthlyProgress, filter);
 
-    public async Task<IEnumerable<StudentPassRateItem>> GetStudentPassRateAsync(StudentPassRateFilter filter) =>
-        await connection.QueryAsync<StudentPassRateItem>(ReportQueries.StudentPassRate, filter);
+    public async Task<IEnumerable<StudentPassRateItem>> GetStudentPassRateAsync(StudentPassRateFilter filter)
+    {
+        if (filter.StudentId <= 0)
+        {
+            throw new ArgumentException("Student ID must be greater than zero.", nameof(filter.StudentId));
+        }
+
+        return await connection.QueryAsync<StudentPassRateItem>(ReportQueries.StudentPassRate, filter);
+    }
+        
 
     public async Task<StudentPassRateSummaryItem?> GetStudentPassRateSummaryAsync(StudentPassRateSummaryFilter filter)
     {

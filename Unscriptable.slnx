@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Элементы решения/">
     <File Path=".gitignore" />
+    <File Path="ci.yml" />
   </Folder>
   <Project Path="Unscriptable.API/Unscriptable.API.csproj" />
   <Project Path="Unscriptable.Application/Unscriptable.Application.csproj" />

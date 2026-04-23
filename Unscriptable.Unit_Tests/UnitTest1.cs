@@ -14,12 +14,13 @@ using Dapper;
 namespace Unscriptable.Unit_Tests;
 
 
-public class ReportServiceTests
+public class UnitTest1
 {
+
     private readonly Mock<IDbConnection> _mockDb;
     private readonly ReportService _service;
 
-    public ReportServiceTests()
+    public UnitTest1()
     {
         // Создаём Мокки объект данных (обвёртка)
         _mockDb = new Mock<IDbConnection>();
