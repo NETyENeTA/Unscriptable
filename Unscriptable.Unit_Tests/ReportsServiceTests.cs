@@ -59,20 +59,16 @@ public class ReportsServiceTests
         var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, "1"),
-        new Claim(ClaimTypes.Role, UserRole.Manager.ToString()) // Учитель должен иметь доступ
+        new Claim(ClaimTypes.Role, UserRole.Manager.ToString())
     };
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var user = new ClaimsPrincipal(identity);
 
         _mockAccessor.Setup(a => a.HttpContext).Returns(new DefaultHttpContext { User = user });
 
-        // Настраиваем мок соединения, чтобы он не "умирал" сразу (опционально)
-        // Но лучше просто проверить, что метод НЕ выкинул UnauthorizedAccessException
         var filter = new StudentRatingFilter {};
 
         // 2. Act & Assert
-        // Мы не проверяем данные из БД (это интеграционный тест), 
-        // мы проверяем, что логика безопасности пропустила учителя.
         var exception = await Record.ExceptionAsync(() => _service.GetStudentRatingAsync(filter));
 
         // Если exception — NullReference, значит CheckStaffAccess пройден (успех для Unit-теста логики)
