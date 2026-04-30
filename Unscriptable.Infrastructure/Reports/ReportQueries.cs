@@ -189,7 +189,7 @@ public static class ReportQueries
         t.id AS TestId,
         t.title AS TestTitle,
         MAX(COALESCE(a.score, 0)) AS BestScore,
-        COALESCE(t.passingscore, 100) AS MaxPossibleScore, -- Или другое поле из базы
+        COALESCE(t.passingscore, 100) AS MaxPossibleScore,
         BOOL_OR(COALESCE(tr.passed, false)) AS Passed,
         MAX(a.submittedat) AS CompletedAt,
         COUNT(a.id) AS AttemptsCount

@@ -51,7 +51,9 @@ public class AuthService(
     // 2. Логин через Cookie
     public async Task<bool> LoginCookieAsync(string login, string password)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Login == login);
+        var user = await context.Users
+            .Include(u => u.Student)
+            .FirstOrDefaultAsync(u => u.Login == login);
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Passwordhash))
             return false;
 
@@ -67,7 +69,9 @@ public class AuthService(
     // 3. Логин через JWT
     public async Task<string?> LoginJwtAsync(string login, string password)
     {
-        var user = await context.Users.FirstOrDefaultAsync(u => u.Login == login);
+        var user = await context.Users
+            .Include(u => u.Student)
+            .FirstOrDefaultAsync(u => u.Login == login);
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Passwordhash))
             return null;
 

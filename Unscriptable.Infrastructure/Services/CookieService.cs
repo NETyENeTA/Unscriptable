@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Unscriptable.Domain.Entitties;
+using Unscriptable.Domain.Enums;
 
 namespace Unscriptable.Infrastructure.Services;
 
@@ -19,6 +20,11 @@ public class CookieService
             new Claim(ClaimTypes.Name, user.Login),
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
+
+        if (user.Role == UserRole.Student.ToString())
+        {
+            claims.Add(new Claim("StudentId", user.Student.Id.ToString()));
+        }
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         return new ClaimsPrincipal(identity);

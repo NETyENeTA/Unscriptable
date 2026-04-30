@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Unscriptable.API.Controllers;
 using Unscriptable.Application.DTOs.Dapper;
-using Unscriptable.Application.DTOs.Filters;
+using Unscriptable.Application.DTOs.Dapper.Filters;
 using Unscriptable.Application.Interfaces;
 
 namespace Unscriptable.Unit_Tests;
