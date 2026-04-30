@@ -28,20 +28,20 @@ public class AuthService(
         var user = new User
         {
             Login = login,
-            PasswordHash = passwordHash,
+            Passwordhash = passwordHash,
             Email = email,
-            FirstName = firstName,
-            LastName = lastName,
-            Role = UserRole.Student // По умолчанию студент
+            Firstname = firstName,
+            Lastname = lastName,
+            Role = UserRole.Student.ToString() // По умолчанию студент
         };
 
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
         // Если это студент — создаем ему пустой профиль в таблице Students
-        if (user.Role == UserRole.Student)
+        if (user.Role == UserRole.Student.ToString())
         {
-            context.Students.Add(new Student { UserId = user.Id });
+            context.Students.Add(new Student { Userid = user.Id });
             await context.SaveChangesAsync();
         }
 
@@ -52,7 +52,7 @@ public class AuthService(
     public async Task<bool> LoginCookieAsync(string login, string password)
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Login == login);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Passwordhash))
             return false;
 
         var principal = cookieService.CreatePrincipal(user);
@@ -68,7 +68,7 @@ public class AuthService(
     public async Task<string?> LoginJwtAsync(string login, string password)
     {
         var user = await context.Users.FirstOrDefaultAsync(u => u.Login == login);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Passwordhash))
             return null;
 
         return jwtService.GenerateToken(user);

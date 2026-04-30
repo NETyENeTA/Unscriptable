@@ -8,6 +8,6 @@ namespace Unscriptable.Domain.Enums;
 
 public enum UserRole
 {
-    Manager = 1,
-    Student = 2
+    Manager,
+    Student
 }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Unscriptable.Application.DTOs.Filters;
+namespace Unscriptable.Application.DTOs.Dapper.Filters;
 
 public class StudentPassRateSummaryFilter
 {
-    public int StudentId { get; set; }
+    public int StudentId { get; set; } // Обязательно
 }
