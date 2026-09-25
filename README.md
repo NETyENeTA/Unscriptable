@@ -30,3 +30,5 @@ Unscriptable — это образовательная платформа на .
 1. Настройте PostgresConnection в appsettings.json.
 2. Выполните: dotnet ef database update (для обновлении бд и создания её)
 3. Запуск: dotnet run
+
+[Google](https://www.google.com "Поисковая система")
